@@ -1,0 +1,160 @@
+<style>
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.toggleInfo {
+  position: relative;
+  left: 100%;
+  bottom: 10%;
+  white-space: nowrap;
+  font-size: 18px !important;
+}
+
+.toggle {
+  display: inline-block;
+  width: 60px;
+  left:5%;
+  height: 34px;
+  position: relative;
+  border-radius: 34px;
+  background-color: #ccd;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.toggle::before {
+  content: "";
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #fff;
+  top: 4px;
+  left: 4px;
+  transition: transform 0.3s;
+}
+
+.toggle.on {
+  background-color: #66bb6a;
+}
+
+.toggle.on::before {
+  transform: translateX(26px);
+}
+
+.heading {
+    font-family: Helvetica, sans-serif;
+    font-weight: bold;
+    font-size: 30px;
+    text-align:center;
+    background-color: #39367A;
+    color:white;
+    padding: 5px;
+    border-radius: 20px;
+}
+.info {
+  font-family: Arial, sans-serif;
+  font-size: 20px;
+  font-weight: bold;
+  text-align:center;
+  color:white;
+  padding:10px;
+  text-shadow: 
+  -1px -1px 0 rgba(57, 54, 112, 0.5),
+   1px -1px 0 rgba(57, 54, 112, 0.5),
+  -1px 1px 0 rgba(57, 54, 112, 0.5),
+   1px 1px 0 rgba(57, 54, 112, 0.5);
+
+}
+#button {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  height: 200px;
+  width: 200px;
+  border-radius: 50%;
+  border-radius: 100%;
+  padding: 0px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+#button:active {
+  background-color: #ffbf00;
+}
+
+#buttonImage {
+  width: 90%;
+  user-drag: none;
+  -webkit-user-drag: none;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+#errorText {
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+  font-weight: bold;
+  text-align:left;
+  color:red;
+  letter-spacing: 1px;
+}
+
+#background {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.15);
+  top:0; bottom:0; left:0; right:0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.fovInfo {
+  position: relative;
+  font-size: 18px !important;
+  bottom: 10%;
+}
+
+/*Range Reset
+  https://www.smashingmagazine.com/2021/12/create-custom-range-input-consistent-browsers/
+*/
+.rangeInput {
+   -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    width: 70%;
+    padding-top: 20px;
+    padding-left: 20px;
+}
+
+/* Removes default focus */
+.rangeInput:focus {
+  outline: none;
+}
+
+.rangeInput::-webkit-slider-runnable-track {
+   background-color: #39367A;
+   border-radius: 0.5rem;
+   height: 0.5rem;  
+}
+
+.rangeInput::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+   appearance: none;
+   margin-top: -12px; /* Centers thumb on the track */
+   background-color: #ffffff;
+   border: 1px solid #053a5f;
+   height: 2rem;
+   width: 1rem;
+}
+
+.rangeInput:focus::-webkit-slider-thumb {   
+  border: 1px solid #053a5f;
+  outline: 3px solid #053a5f;
+  outline-offset: 0.125rem; 
+}
+</style>

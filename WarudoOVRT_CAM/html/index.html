@@ -1,0 +1,128 @@
+<html>
+<link rel="stylesheet" href="style/index_style.css">
+<body>
+    <div class='heading'>
+        <span>WarudoOVRT Viewport</span>
+    </div>
+    <div class='info'>Click the icon below to get started!</div>
+    <button id='button' onclick="openLogicWindow()">
+        <img draggable="false" (dragstart)="false;" id='buttonImage' src="../icon.png"/>
+    </button>
+    <div>
+        <div id='transToggle' class="toggle">
+            <div class='toggleInfo info'>Enable overlay transform saving</div>
+        </div>
+    </div>
+    <div>
+        <input type='range' id='fovSlider' class='rangeInput' min='30' max='120' value='60' step='15' />
+        <label for='fovSlider' class='fovInfo info' id='fovInfo'>FOV: 60</label>
+    </div>
+    <p id='errorText'></p>
+    <div id='background'></div>
+</body>
+
+<script src="js/ovrt-helper.js"></script>
+<script>
+    const API = new OVRT();
+    const errorText = document.getElementById('errorText');
+    const button = document.getElementById('button');
+
+    const fovSlider = document.getElementById('fovSlider');
+    const fovInfo = document.getElementById('fovInfo');
+
+    var warudoFound = false;
+
+    const transformToggle = document.getElementById('transToggle');
+    var transToggleState = true;
+
+    //Defining overlay settings for Logic Window
+    var overlay_position = {
+        'posX' : 0.0, 'posY' : -10.0, 'posZ' : 0.0, 
+        'rotX' : 0.0, 'rotY' : 0.0, 'rotZ' : 0.0,
+        opacity: 0.0,
+        curvature: 0,
+        framerate: 30,
+        ecoMode: true,
+        lookHiding: true,
+        attachedDevice: 1,
+        shouldSave: false,
+        inputBlocked: true,
+    };
+
+    // Using async as I would like to utilize the initialized variables elsewhere
+    async function openLogicWindow() {
+        // Prevent spamming of button resulting in accidentally opening too many windows..
+        button.disabled = true;
+
+        // Check if there is already a WarudoOverlay created by the app
+        if (!(localStorage.cWarudoOverlay == null)) {
+            WarudoOverlay = new OVRTOverlay(localStorage.cWarudoOverlay);
+            // =This should also trigger closing the LogicOverlay
+            WarudoOverlay.close();
+        }
+
+        // Checking if Warudo is open.
+        var windowList = await API.getWindowTitles();
+        for (windowID in windowList) {
+            if (windowList[windowID] === 'Warudo') {
+                warudoFound = true;
+                console.log('Window Found: ' + windowList[windowID] + '; ID: ' + windowID);
+                break;
+            }
+        }
+
+        // If not open, display error.
+        if (warudoFound == false) {
+            errorText.innerText = 'Error: Unable to find Warudo window.  Try launching again.';
+            setTimeout(() => {
+                button.disabled = false;
+                errorText.innerText = '';
+            }, '2000');
+            return;
+        }
+
+        // If not, open logic overlay.
+        var logicWindow = await API.spawnOverlay(overlay_position);
+        logicWindow.setBrowserOptionsEnabled(false);
+        logicWindow.setRenderingEnabled(false);
+        logicWindow.setInputBlocked(true);
+        logicWindow.setContent(0, {
+            url: 'camLogic.html',
+            width: 30,
+            height: 30,
+        });
+
+        //Reset information, in case the application needs to run again.
+        warudoFound = false;
+        button.disabled = false;
+        errorText.innerText = '';
+    };
+
+    // Transform Toggle Saving
+    // if variable has never been declared, assume default on state
+    if (localStorage.saveToggle == null) {
+        transToggleState = true;
+        localStorage.saveToggle = true;
+        transformToggle.classList.toggle('on');
+    } else {
+        // else, set toggle state to whatever currently was saved.
+        transToggleState = (localStorage.saveToggle === 'true');
+        if (transToggleState) transformToggle.classList.toggle('on');
+    }
+
+    transformToggle.addEventListener('click', () => {
+        transformToggle.classList.toggle('on');
+        transToggleState = !transToggleState;
+        localStorage.saveToggle = String(transToggleState);
+        if (!transToggleState) localStorage.removeItem('savedTransform');
+    });
+
+    // FOV Saving
+    // if variable has never been declared, initialize as default value
+    if (localStorage.fovValue == null) localStorage.fovValue = 60;
+    fovSlider.addEventListener("input", (event) => {
+        fovInfo.innerText = 'FOV: ' + event.target.value;
+        localStorage.fovValue = event.target.value;
+    });
+</script>
+</html>

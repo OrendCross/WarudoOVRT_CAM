@@ -1,0 +1,114 @@
+<html>
+<head>
+<!-- https://github.com/jangxx/ovrt-helper/blob/master/ovrt-helper.js -->
+<script src="js/ovrt-helper.js"></script>
+<!-- https://dev.to/jsmccrumb/asynchronous-setinterval-4j69 -->
+<script src="js/asyncIntervals.js"></script>
+<script>
+
+// Creating websocket connection to Warudo.
+const ws = new WebSocket("ws://localhost:19190");
+var websocket_is_ready = false; ws.onopen = () => websocket_is_ready = true;
+
+const API = new OVRT({ function_queue: true });
+
+// Shows in the 'Window List' menu in the OVRtk editor window.
+API.setCurrentBrowserTitle("WarudoVMC Viewer");
+API.closeEntryApp();
+
+//Defining overlay settings for Warudo Window
+const overlay_position = {
+    size: 0.6,
+    opacity: 0.1,
+    curvature: 0,
+    framerate: 60,
+    ecoMode: false,
+    lookHiding: false,
+    shouldSave: false,
+    inputBlocked: true,
+};
+
+var LogicOverlay;
+var warudoOverlay;
+
+mainLogic();
+
+// Using async as I would like to utilize the initialized variables elsewhere
+async function mainLogic() { 
+    var warudoID = -1;
+    // Obtaining LogicWindow for closing afterwards.
+    var logicID = await API.getUniqueID();
+    LogicOverlay = new OVRTOverlay(logicID);
+
+    //Re-find the Warudo window ID
+    var windowList = await API.getWindowTitles();
+    for (windowID in windowList) {
+        if (windowList[windowID] === 'Warudo') {
+            console.log('Window Found: ' + windowList[windowID] + "; ID: " + windowID);
+            warudoID = windowID;
+        }
+    }
+
+    // Launching the Warudo Viewport
+    if (warudoID != -1) {
+        warudoOverlay = await API.spawnOverlay(overlay_position)
+
+        // if saveToggle is enabled, load the saved position.
+        if ((localStorage.saveToggle === 'true') && !(localStorage.savedTransform == null)) {
+            var transData = JSON.parse(localStorage.savedTransform);
+            warudoOverlay.setPosition(transData.posX, transData.posY, transData.posZ);
+            warudoOverlay.setRotation(transData.rotX, transData.rotY, transData.rotZ);
+        } else {
+            warudoOverlay.bringToMe();
+        }
+        warudoOverlay.setBrowserOptionsEnabled(false);
+        warudoOverlay.setInputBlocked(true);
+        warudoOverlay.setContent(2, warudoID);
+        localStorage.cWarudoOverlay = warudoOverlay.id;
+        scheduleWebsocketSend();
+    }
+
+    // If saveToggle is enabled, save position of overlay every 2.5 seconds.
+    if (!(warudoOverlay == null) && (localStorage.saveToggle === 'true')) {
+        setAsyncInterval(async () => {
+            var overlayTransform = await warudoOverlay.getTransform();
+            transformJson = 
+            '{"posX":' + overlayTransform.posX + 
+            ',"posY":' + overlayTransform.posY + 
+            ',"posZ":' + overlayTransform.posZ + 
+            ',"rotX":' + overlayTransform.rotX + 
+            ',"rotY":' + overlayTransform.rotY + 
+            ',"rotZ":' + overlayTransform.rotZ + '}';
+            localStorage.savedTransform = transformJson;
+        }, 2500);3
+    }
+}
+
+// Start sending transform data via webhook
+// I would like to use the 'overlay-changed' event, but that event only fires for the overlay that it is present in.
+function scheduleWebsocketSend() {
+    setAsyncInterval(async () => {
+        warudoOverlay.getTransform().then(
+            (result) => {
+                if (websocket_is_ready == true) {
+                    var overlayTransform = [result.posX, result.posY, result.posZ, result.rotX, result.rotY, result.rotZ, localStorage.fovValue];
+                    ws.send('{"action":"OVRTOverlayTrans", "data":[' + overlayTransform + ']}');
+                }
+            }
+        );
+    }, 10);
+}
+
+// Closing the LogicOverlay and WebSocket when the WarudoOverlay is closed.
+API.on("overlay-closed", function(event){
+    if (event.uid == warudoOverlay.id) {
+        if (websocket_is_ready == true) ws.close();
+        // I don't think I need to clear the intervals tbh, but it makes me feel better that it's here :>
+        for (interval in asyncIntervals) clearAsyncInterval(interval);
+        localStorage.removeItem('cWarudoOverlay');
+        LogicOverlay.close();
+    }
+});
+</script>
+</head>
+</html>
