@@ -30,6 +30,7 @@
     const fovSlider = document.getElementById('fovSlider');
     const fovInfo = document.getElementById('fovInfo');
 
+    const regex = new RegExp('(Warudo )(\\d)');
     var warudoFound = false;
 
     const transformToggle = document.getElementById('transToggle');
@@ -64,7 +65,7 @@
         // Checking if Warudo is open.
         var windowList = await API.getWindowTitles();
         for (windowID in windowList) {
-            if (windowList[windowID] === 'Warudo') {
+            if (regex.test(windowList[windowID].toString())) {
                 warudoFound = true;
                 console.log('Window Found: ' + windowList[windowID] + '; ID: ' + windowID);
                 break;
