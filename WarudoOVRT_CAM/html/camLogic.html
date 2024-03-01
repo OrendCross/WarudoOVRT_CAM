@@ -28,6 +28,8 @@ const overlay_position = {
     inputBlocked: true,
 };
 
+const regex = new RegExp('(Warudo )(\\d)');
+
 var LogicOverlay;
 var warudoOverlay;
 
@@ -43,7 +45,7 @@ async function mainLogic() {
     //Re-find the Warudo window ID
     var windowList = await API.getWindowTitles();
     for (windowID in windowList) {
-        if (windowList[windowID] === 'Warudo') {
+        if (regex.test(windowList[windowID].toString())) {
             console.log('Window Found: ' + windowList[windowID] + "; ID: " + windowID);
             warudoID = windowID;
         }
